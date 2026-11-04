@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>星屑ドッジ — STARDUST DODGE</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Zen+Kaku+Gothic+New:wght@400;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="stage">
+    <canvas id="game" width="540" height="720"></canvas>
+    <div class="vignette"></div>
+
+    <!-- タイトル -->
+    <section class="screen" id="scr-title" data-act-any="start">
+      <div class="logo">
+        <div class="logo-sub st" style="--d:0">BULLET HELL SURVIVAL</div>
+        <h1 class="st" style="--d:1">星屑ドッジ</h1>
+        <div class="logo-en st" style="--d:2">STARDUST DODGE</div>
+      </div>
+      <div class="press st" style="--d:4">
+        <span class="press-main">PRESS ENTER</span>
+        <span class="press-sub">Enter / Space / クリックでスタート</span>
+      </div>
+      <div class="howto st" style="--d:5">
+        <div><span class="kbd">↑</span><span class="kbd">↓</span><span class="kbd">←</span><span class="kbd">→</span> / <span class="kbd">W</span><span class="kbd">A</span><span class="kbd">S</span><span class="kbd">D</span> 移動</div>
+        <div><span class="kbd wide">Shift</span> 低速移動 <span class="sep"></span> <span class="kbd wide">Esc</span> 一時停止 <span class="sep"></span> <span class="kbd">M</span> 消音</div>
+      </div>
+    </section>
+
+    <!-- 難易度選択 -->
+    <section class="screen" id="scr-select">
+      <div class="sel-head">
+        <div class="eyebrow st" style="--d:0">SELECT DIFFICULTY</div>
+        <h2 class="st" style="--d:1">難易度を選択</h2>
+      </div>
+      <div class="diff-list">
+        <button class="diff st" style="--d:2; --c:#5df2b0" data-act="diff" data-diff="easy">
+          <span class="d-name">簡単 <em>EASY</em></span>
+          <span class="d-desc">弾がゆっくり。ライフ3で気軽に挑戦。</span>
+          <span class="d-mult">SCORE<b>×1</b></span>
+        </button>
+        <button class="diff st" style="--d:3; --c:#5fb8ff" data-act="diff" data-diff="normal">
+          <span class="d-name">普通 <em>NORMAL</em></span>
+          <span class="d-desc">ほどよい密度の弾幕。ライフ2。</span>
+          <span class="d-mult">SCORE<b>×2</b></span>
+        </button>
+        <button class="diff st" style="--d:4; --c:#ff5d7a" data-act="diff" data-diff="hard">
+          <span class="d-name">難しい <em>HARD</em></span>
+          <span class="d-desc">高速・高密度の弾幕。ライフ1。</span>
+          <span class="d-mult">SCORE<b>×4</b></span>
+        </button>
+      </div>
+      <div class="best-line st" style="--d:5">ベストスコア <b id="sel-best">—</b></div>
+      <p class="hint st" style="--d:6"><span class="kbd">↑</span><span class="kbd">↓</span> 選択　<span class="kbd wide">Enter</span> 決定　<span class="kbd wide">Esc</span> 戻る</p>
+    </section>
+
+    <!-- HUD -->
+    <section class="screen" id="scr-hud">
+      <div class="hud-top">
+        <div class="hud-block">
+          <div class="hud-label">SCORE</div>
+          <div class="hud-score" id="hud-score">0</div>
+        </div>
+        <div class="hud-block right">
+          <div class="hud-label">TIME</div>
+          <div class="hud-time" id="hud-time">00:00.00</div>
+        </div>
+      </div>
+      <div class="hud-sub">
+        <div class="hud-lives" id="hud-lives"></div>
+        <div class="hud-graze">GRAZE <b id="hud-graze">0</b></div>
+        <div class="hud-diff" id="hud-diff">NORMAL ×2</div>
+      </div>
+    </section>
+
+    <div id="count"></div>
+
+    <!-- 一時停止 -->
+    <section class="screen" id="scr-pause">
+      <div class="eyebrow st" style="--d:0">PAUSED</div>
+      <h2 class="st" style="--d:1">一時停止中</h2>
+      <div class="menu">
+        <button class="btn st" style="--d:2" data-act="resume">再開する</button>
+        <button class="btn st" style="--d:3" data-act="retry">最初からやり直す</button>
+        <button class="btn st" style="--d:4" data-act="title">タイトルへ戻る</button>
+      </div>
+    </section>
+
+    <!-- 結果 -->
+    <section class="screen" id="scr-result">
+      <div class="panel">
+        <div class="res-head st" style="--d:0">
+          <div class="eyebrow">GAME OVER</div>
+          <h2>リザルト</h2>
+          <div class="res-diff" id="res-diff">普通</div>
+        </div>
+        <div class="res-rows">
+          <div class="row st" style="--d:1"><span>生存時間</span><b id="res-time">00:00.00</b></div>
+          <div class="row st" style="--d:2"><span>生存ボーナス</span><b id="res-surv">0</b></div>
+          <div class="row st" style="--d:3"><span>グレイズ</span><b id="res-graze">0</b></div>
+          <div class="row st" style="--d:4"><span>難易度倍率</span><b id="res-mult">×2</b></div>
+        </div>
+        <div class="res-score st" style="--d:5">
+          <span>TOTAL SCORE</span>
+          <b id="res-score">0</b>
+          <em id="res-new">NEW RECORD!</em>
+        </div>
+        <div class="res-best st" style="--d:6">ベストスコア <b id="res-best">0</b></div>
+        <div class="res-rank" id="res-rank"><small>RANK</small><span id="res-rank-letter">A</span></div>
+        <div class="menu row-menu">
+          <button class="btn st" style="--d:7" data-act="retry">もう一度 <span class="kbd">R</span></button>
+          <button class="btn st" style="--d:8" data-act="select">難易度選択</button>
+          <button class="btn st" style="--d:9" data-act="title">タイトル</button>
+        </div>
+      </div>
+    </section>
+
+    <div id="sound" class="sound">SOUND ON</div>
+  </div>
+  <script src="game.js"></script>
+</body>
+</html>
